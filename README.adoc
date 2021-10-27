@@ -1,0 +1,69 @@
+= snowplow-browser-plugin-recaptcha-assessment
+
+A
+https://snowplowanalytics.com/[Snowplow]
+https://docs.snowplowanalytics.com/docs/collecting-data/collecting-from-own-applications/javascript-trackers/javascript-tracker/[JavaScript Tracker]
+https://docs.snowplowanalytics.com/docs/collecting-data/collecting-from-own-applications/javascript-trackers/javascript-tracker/javascript-tracker-v3/plugins/[plugin]
+to enable catching
+https://www.google.com/recaptcha/about/[ReCAPTCHA]
+https://developers.google.com/recaptcha/docs/v3#interpreting_the_score[user scores]
+for site traffic.
+
+The approach is similar to https://www.simoahava.com/analytics/improve-google-analytics-bot-detection-with-recaptcha/[this article],
+but without the need for a PHP service to verify the token. This role is performed by the Snowplow Enricher instead, via a https://docs.snowplowanalytics.com/docs/enriching-your-data/available-enrichments/custom-api-request-enrichment/[Custom API enrichment].
+
+== Requirements
+As the ReCAPTCHA tokens expire after about 2 minutes, the enrichment will only work on a real time, streaming pipeline. Processing historical events won't successfully enrich the data.
+
+The plugin requires the Snowplow JavaScript tracker version 3.
+
+== Setup
+. You will need to have a site configured in https://www.google.com/recaptcha/admin[ReCAPTCHA]. The site settings should give you a _Site Key_ and _Secret Key_
+
+. There are two Self Describing JSON defintions you will need to deploy to your pipeline's Iglu Server:
+
+  .. one for the event or context generated on the user device (associated with an https://developers.google.com/recaptcha/docs/v3#actions["action"]) and used as input to the API
+  .. a second for the API assessment result, including the score
+
+. Edit and install the enrichment configuration:
+
+  .. In the `output` config, replace `{{secretKey}}` with your ReCAPTCHA API _Secret Key_
+  .. (Optional) In the `inputs` config, for `token`, you can change the source from `contexts` to `unstruct_event`, depending on your tracking implementation (see <<sendContext vs sendEvent>>)
+  .. Load the config into your enrichers `enrichments` directory and restart the enricher
+
+. Upload the plugin, and install it into your tracking code:
+  - As an external plugin:
+[source,javascript]
+snowplow(
+	'addPlugin',
+	'https://cdn.example.com/recaptcha_assessment.js',
+	['recaptcha_assessment', 'default'],
+	[{siteKey: '<SITE KEY>'}]
+);
+  - Inline:
+[source,javascript]
+// include recaptcha_assessment.js already
+snowplow( 'addPlugin', recaptcha_assessment, 'default', [{siteKey: '<SITE KEY>'}]);
+
+== Plugin Parameters
+As demonstrated above, the plugin takes a single parameter: an `object` with the following parameters:
+
+siteKey::
+The ReCAPTCHA _Site Key_ to generate a token for. *Required* `string`
+action::
+The value to use for the "action" property in the event or context. _Default: page_view_ `string`
+sendContext::
+If enabled, send the `action` payload as a context on the first event sent once the payload is available. _Default: true_ `boolean`
+sendEvent::
+If enabled, send the `action` payload as a Self Describing Event once the payload is available. _Default: false_ `boolean`
+schema::
+The schema to use when sending the `action` payload. Useful if you need to make changes to the schema. _Default: iglu:com.google.recaptcha/action/jsonschema/1-0-0_ `string`
+altDomain::
+Whether to use an https://developers.google.com/recaptcha/docs/faq#can-i-use-recaptcha-globally[alternative domain] to load the ReCAPTCHA script from. If `true`, uses `www.recaptcha.net`, if a string, uses that as the domain. If unset or falsy, uses the default `www.google.com`. _Default: undefined (www.google.com)_ `boolean / string`
+callback::
+A function to call with the token value once received in case you want to do something else with it `function`
+
+=== sendContext vs sendEvent
+The context approach is useful if you already have a high volume of events or use late-firing events like https://docs.snowplowanalytics.com/docs/collecting-data/collecting-from-own-applications/javascript-trackers/javascript-tracker/javascript-tracker-v3/tracking-events/#activity-tracking-page-pings[Page Pings] already. This will make the overall impact on your data collection minimal, as it will not have the overhead of an additional event firing, but if no events fire after the payload is available you may not capture the data.
+
+The event approach is useful if you don't care about event volume, or are more concerned about not having the recaptcha score (this avoids any races where all events might be sent before the action payload is available).

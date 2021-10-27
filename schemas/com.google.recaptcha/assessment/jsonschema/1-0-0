@@ -1,0 +1,42 @@
+{
+  "description": "Assessment result from the ReCAPTCHA verification of the challenge token in the iglu:com.google.recaptcha/action event or context",
+  "properties": {
+    "success": {
+      "type": "boolean",
+      "description": "Whether the assement of this token was successful or not"
+    },
+    "challenge_ts": {
+      "type": "string",
+      "description": "Approximate time the action token was generated",
+      "format": "date-time"
+    },
+    "hostname": {
+      "type": "string",
+      "description": "The site hostname the token was generated for"
+    },
+    "score": {
+      "type": "number",
+      "description": "Score rating of the user, from 0 (bot) to 1 (probably human)"
+    },
+    "action": {
+      "type": "string",
+      "description": "The action that the assessment is evaluating"
+    },
+    "error-codes": {
+      "type": "array",
+      "description": "The errors encountered during the assessment, if any",
+      "items": {
+        "type": "string",
+        "description": "Code describing the error encountered during the assessment"
+      }
+    }
+  },
+  "type": "object",
+  "self": {
+    "vendor": "com.google.recaptcha",
+    "name": "assessment",
+    "format": "jsonschema",
+    "version": "1-0-0"
+  },
+  "$schema": "http://iglucentral.com/schemas/com.snowplowanalytics.self-desc/schema/jsonschema/1-0-0#"
+}

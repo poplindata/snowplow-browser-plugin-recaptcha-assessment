@@ -1,0 +1,20 @@
+{
+  "name": "snowplow-browser-plugin-recaptcha-assessment",
+  "version": "1.0.0",
+  "description": "Snowplow JavaScript tracker plugin to capture ReCAPTCHA v3 user scores.",
+  "main": "recaptcha_assessment.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/poplindata/snowplow-browser-plugin-recaptcha-assessment.git"
+  },
+  "keywords": [
+    "snowplow",
+    "recaptcha"
+  ],
+  "author": "Poplin Data <contact@poplindata.com>",
+  "license": "0BSD",
+  "bugs": {
+    "url": "https://github.com/poplindata/snowplow-browser-plugin-recaptcha-assessment/issues"
+  },
+  "homepage": "https://github.com/poplindata/snowplow-browser-plugin-recaptcha-assessment#readme"
+}
