@@ -12,6 +12,7 @@ Object.defineProperty(typeof exports != 'undefined' ? exports : typeof globalThi
         schema: opts.schema || 'iglu:com.google.recaptcha/action/jsonschema/1-0-0',
         altDomain: opts.altDomain === true ? 'www.recaptcha.net' : (opts.altDomain || 'www.google.com'),
         callback: typeof opts.callback === 'function' ? opts.callback : undefined,
+        enterprise: !!opts.enterprise,
 
         token: undefined,
         challenge_ts: undefined,
@@ -39,16 +40,31 @@ Object.defineProperty(typeof exports != 'undefined' ? exports : typeof globalThi
       return {
         activateBrowserPlugin: function (tracker) {
           state.pending++;
-          if (!state.loaded && (!window.grecaptcha || typeof window.grecaptcha.execute !== f)) {
+          if (!state.loaded && (
+                !window.grecaptcha ||
+                (typeof window.grecaptcha.execute !== f &&
+                  (!window.grecaptcha.enterprise || typeof window.grecaptcha.enterprise.execute !== f)
+                )
+              )
+            ) {
             state.loaded = true;
             var scripts = d.getElementsByTagName(s);
             var api = d.createElement(s);
-            api.src = '//' + state.altDomain + '/recaptcha/api.js?render=' + state.siteKey;
+            api.src = [
+              '//',
+              state.altDomain,
+              '/recaptcha/',
+              state.enterprise ? 'enterprise.js' : 'api.js',
+              '?render=',
+              state.siteKey
+            ].join('');
             api.async = 1;
             api.addEventListener('load', function () {
-              grecaptcha.ready(function () {
+              if (typeof grecaptcha === u) return;
+              var gr = grecaptcha.enterprise || grecaptcha;
+              gr.ready(function () {
                 state.challenge_ts = new Date();
-                grecaptcha.execute(state.siteKey, { action: state.action }).then(function (token) {
+                gr.execute(state.siteKey, { action: state.action }).then(function (token) {
                   state.token = token;
                   var trackerfn = tracker.id.replace('_' + tracker.namespace, '');
                   if (state.sendEvent && typeof window[trackerfn] === f) {

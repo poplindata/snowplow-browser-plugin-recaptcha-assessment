@@ -1,0 +1,68 @@
+{
+  "schema": "iglu:com.snowplowanalytics.snowplow.enrichments/api_request_enrichment_config/jsonschema/1-0-0",
+  "data": {
+    "vendor": "com.snowplowanalytics.snowplow.enrichments",
+    "name": "api_request_enrichment_config",
+    "enabled": true,
+    "parameters": {
+      "inputs": [
+        {
+          "key": "sitekey",
+          "json": {
+            "field": "contexts",
+            "schemaCriterion": "iglu:com.google.recaptcha/action/jsonschema/1-0-0",
+            "jsonPath": "$.site_key"
+          }
+        },
+        {
+          "key": "token",
+          "json": {
+            "field": "contexts",
+            "schemaCriterion": "iglu:com.google.recaptcha/action/jsonschema/1-0-0",
+            "jsonPath": "$.token"
+          }
+        },
+        {
+          "key": "action",
+          "json": {
+            "field": "contexts",
+            "schemaCriterion": "iglu:com.google.recaptcha/action/jsonschema/1-0-0",
+            "jsonPath": "$.action"
+          }
+        },
+        {
+          "key": "ip",
+          "pojo": {
+            "field": "user_ipaddress"
+          }
+        },
+        {
+          "key": "ua",
+          "pojo": {
+            "field": "useragent"
+          }
+        }
+      ],
+      "api": {
+        "http": {
+          "method": "POST",
+          "uri": "https://recaptchaenterprise.googleapis.com/v1beta1/projects/{{project_number}}/assessments?key={{api_key}}&token={{token}}&userIpAddress={{ip}}&userAgent={{ua}}&expectedAction={{action}}&siteKey={{sitekey}}",
+          "timeout": 3000,
+          "authentication": {}
+      }
+      },
+      "outputs": [
+        {
+          "schema": "iglu:com.google.recaptcha/enterprise_assessment/jsonschema/1-0-0" ,
+          "json": {
+            "jsonPath": "$"
+          }
+        }
+      ],
+      "cache": {
+        "size": 1,
+        "ttl": 1
+      }
+    }
+  }
+}

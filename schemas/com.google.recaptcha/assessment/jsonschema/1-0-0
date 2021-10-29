@@ -14,6 +14,10 @@
       "type": "string",
       "description": "The site hostname the token was generated for"
     },
+    "apk_package_name": {
+      "type": "string",
+      "description": "The Android app package name the token was generated for"
+    },
     "score": {
       "type": "number",
       "description": "Score rating of the user, from 0 (bot) to 1 (probably human)"
