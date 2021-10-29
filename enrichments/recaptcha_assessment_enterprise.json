@@ -49,11 +49,11 @@
           "uri": "https://recaptchaenterprise.googleapis.com/v1beta1/projects/{{project_number}}/assessments?key={{api_key}}&token={{token}}&userIpAddress={{ip}}&userAgent={{ua}}&expectedAction={{action}}&siteKey={{sitekey}}",
           "timeout": 3000,
           "authentication": {}
-      }
+        }
       },
       "outputs": [
         {
-          "schema": "iglu:com.google.recaptcha/enterprise_assessment/jsonschema/1-0-0" ,
+          "schema": "iglu:com.google.recaptcha/enterprise_assessment/jsonschema/1-0-0",
           "json": {
             "jsonPath": "$"
           }

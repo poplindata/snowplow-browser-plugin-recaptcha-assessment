@@ -27,11 +27,11 @@
           "uri": "https://www.google.com/recaptcha/api/siteverify?secret={{secretKey}}&response={{token}}&remoteip={{ip}}",
           "timeout": 3000,
           "authentication": {}
-      }
+        }
       },
       "outputs": [
         {
-          "schema": "iglu:com.google.recaptcha/assessment/jsonschema/1-0-0" ,
+          "schema": "iglu:com.google.recaptcha/assessment/jsonschema/1-0-0",
           "json": {
             "jsonPath": "$"
           }
