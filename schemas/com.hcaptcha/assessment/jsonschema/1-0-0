@@ -1,0 +1,54 @@
+{
+  "description": "Assessment result from the hCaptcha verification of the challenge token in the iglu:com.hcaptcha/challenge event or context",
+  "properties": {
+    "success": {
+      "type": "boolean",
+      "description": "Whether the assement of this token was successful or not"
+    },
+    "challenge_ts": {
+      "type": "string",
+      "description": "Approximate time the action token was generated",
+      "format": "date-time"
+    },
+    "hostname": {
+      "type": "string",
+      "description": "The site hostname the token was generated for"
+    },
+    "credit": {
+      "type": "boolean",
+      "description": "Whether this response will be credited"
+    },
+    "score": {
+      "type": "number",
+      "description": "Risk score rating of the user, from 0 (probably human) to 1 (probably bot)"
+    },
+    "action": {
+      "type": "string",
+      "description": "The action that the assessment is evaluating"
+    },
+    "score_reason": {
+      "type": "array",
+      "description": "The reasons for the score (enterprise only)",
+      "items": {
+        "type": "string",
+        "description": "Code describing one of the reasons contributing to the score for this assessment"
+      }
+    },
+    "error-codes": {
+      "type": "array",
+      "description": "The errors encountered during the assessment, if any",
+      "items": {
+        "type": "string",
+        "description": "Code describing the error encountered during the assessment"
+      }
+    }
+  },
+  "type": "object",
+  "self": {
+    "vendor": "com.hcaptcha",
+    "name": "assessment",
+    "format": "jsonschema",
+    "version": "1-0-0"
+  },
+  "$schema": "http://iglucentral.com/schemas/com.snowplowanalytics.self-desc/schema/jsonschema/1-0-0#"
+}

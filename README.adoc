@@ -27,7 +27,7 @@ The plugin requires the Snowplow JavaScript tracker version 3.
 
 . Edit and install the enrichment configuration:
 
-  .. This will depend on if you're using standard ReCAPTCHA or https://cloud.google.com/recaptcha-enterprise[ReCAPTCHA Enterprise]:
+  .. This will depend on if you're using standard https://developers.google.com/recaptcha/docs/v3[ReCAPTCHA] and https://docs.hcaptcha.com/[hCaptcha], https://cloud.google.com/recaptcha-enterprise[ReCAPTCHA Enterprise]:
   ... ReCAPTCHA free (`recaptcha_assessment.json`): In the `output` config, replace `{{secretKey}}` with your ReCAPTCHA API _Secret Key_
   ... ReCAPTCHA Enterprise (`recaptcha_assessment_enterprise.json`): In the `output` config, replace:
   .... `{{project_number}}` with your Google Cloud Project ID
@@ -49,11 +49,22 @@ snowplow(
 // include recaptcha_assessment.js already
 snowplow( 'addPlugin', recaptcha_assessment, 'default', [{siteKey: '<SITE KEY>'}]);
 
+=== hCaptcha Support
+As the API for https://www.hcaptcha.com/[hCaptcha] is very similar, it is also supported with the following configuration changes:
+
+. Use the `com.hcaptcha` schema variants instead of `com.google.recaptcha`
+. Use the `hcaptcha_assessment.json` enrichement
+. Specify the `hCaptcha: true` setting when loading the plugin, and a hCaptcha `siteKey`
+
 == Plugin Parameters
 As demonstrated above, the plugin takes a single parameter: an `object` with the following parameters:
 
 siteKey::
-The ReCAPTCHA _Site Key_ to generate a token for. *Required* `string`
+The ReCAPTCHA/hCaptcha _Site Key_ to generate a token for. *Required* `string`
+enterprise::
+If enabled, use the ReCAPTCHA Enterprise APIs instead of the free version. _Default: false_ `boolean`
+hCaptcha::
+Shorthand config to enable hCaptcha support rather than Google ReCAPTCHA. This changes the defaults for other settings to be compatible with hCaptcha. _Default: false_ `boolean`
 action::
 The value to use for the "action" property in the event or context. _Default: page_view_ `string`
 sendContext::
@@ -61,11 +72,13 @@ If enabled, send the `action` payload as a context on the first event sent once 
 sendEvent::
 If enabled, send the `action` payload as a Self Describing Event once the payload is available. _Default: false_ `boolean`
 schema::
-The schema to use when sending the `action` payload. Useful if you need to make changes to the schema. _Default: iglu:com.google.recaptcha/action/jsonschema/1-0-0_ `string`
+The schema to use when sending the `action` payload. Useful if you need to make changes to the schema. _Default: iglu:com.google.recaptcha/action/jsonschema/1-0-0 or iglu:com.hcaptcha/challenge/jsonschema/1-0-0_ `string`
 altDomain::
-Whether to use an https://developers.google.com/recaptcha/docs/faq#can-i-use-recaptcha-globally[alternative domain] to load the ReCAPTCHA script from. If `true`, uses `www.recaptcha.net`, if a string, uses that as the domain. If unset or falsy, uses the default `www.google.com`. _Default: undefined (www.google.com)_ `boolean / string`
-enterprise::
-If enabled, use the ReCAPTCHA Enterprise APIs instead of the free version. _Default: false_ `boolean`
+Whether to use an https://developers.google.com/recaptcha/docs/faq#can-i-use-recaptcha-globally[alternative domain] to load the API library script from. If `true`, uses `www.recaptcha.net`, if a string, uses that as the domain. If unset or falsy, uses the default `www.google.com` or `js.hcaptcha.com` for hCaptcha. _Default: undefined (www.google.com/js.hcaptcha.com)_ `boolean / string`
+pathPrefix::
+URL path segment to use when loading the API library. _Default: /recaptcha/ (ReCAPTCHA) or /1/ (hCaptcha)_ `string`
+params::
+Object detailing any additional parameters to include in the API library URL. _Default: empty object_ `object`
 callback::
 A function to call with the token value once received in case you want to do something else with it `function`
 

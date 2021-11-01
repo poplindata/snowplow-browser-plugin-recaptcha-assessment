@@ -1,0 +1,32 @@
+{
+  "description": "Challenge that triggered a hCaptcha assessment on a web page",
+  "properties": {
+    "challenge_ts": {
+      "type": "string",
+      "description": "Approximate time the action token was generated",
+      "format": "date-time"
+    },
+    "site_key": {
+      "type": "string",
+      "description": "The site key used to generate the token"
+    },
+    "token": {
+      "type": "string",
+      "description": "The action token generated for this user"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "challenge_ts",
+    "site_key",
+    "token"
+  ],
+  "self": {
+    "vendor": "com.hcaptcha",
+    "name": "challenge",
+    "format": "jsonschema",
+    "version": "1-0-0"
+  },
+  "$schema": "http://iglucentral.com/schemas/com.snowplowanalytics.self-desc/schema/jsonschema/1-0-0#"
+}
