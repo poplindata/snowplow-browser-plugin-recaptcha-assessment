@@ -53,7 +53,7 @@ snowplow( 'addPlugin', recaptcha_assessment, 'default', [{siteKey: '<SITE KEY>'}
 As the API for https://www.hcaptcha.com/[hCaptcha] is very similar, it is also supported with the following configuration changes:
 
 . Use the `com.hcaptcha` schema variants instead of `com.google.recaptcha`
-. Use the `hcaptcha_assessment.json` enrichement
+. Use the `hcaptcha_assessment.json` enrichment
 . Specify the `hCaptcha: true` setting when loading the plugin, and a hCaptcha `siteKey`
 
 == Plugin Parameters
