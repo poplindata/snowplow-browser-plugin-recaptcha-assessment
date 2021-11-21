@@ -49,12 +49,17 @@ snowplow(
 // include recaptcha_assessment.js already
 snowplow( 'addPlugin', recaptcha_assessment, 'default', [{siteKey: '<SITE KEY>'}]);
 
-=== hCaptcha Support
+=== hCaptcha Enterprise Support
 As the API for https://www.hcaptcha.com/[hCaptcha] is very similar, it is also supported with the following configuration changes:
 
 . Use the `com.hcaptcha` schema variants instead of `com.google.recaptcha`
 . Use the `hcaptcha_assessment.json` enrichment
 . Specify the `hCaptcha: true` setting when loading the plugin, and a hCaptcha `siteKey`
+
+For hCaptcha, only https://docs.hcaptcha.com/faq/#what-are-the-difficulty-levels-for-the-challenges-and-how-are-they-selected["Passive"] captchas are supported. This requires https://www.hcaptcha.com/enterprise[hCaptcha Enterprise].
+You can enable Passive Mode in the Site Settings within hCaptcha, by changing the "Captcha difficulty" slider to "Passive".
+Note if you change a site key configuration from a different mode to Passive, it may still issue challenges to users.
+Archiving and Unarchiving the Site configuration seems to fix this.
 
 == Plugin Parameters
 As demonstrated above, the plugin takes a single parameter: an `object` with the following parameters:

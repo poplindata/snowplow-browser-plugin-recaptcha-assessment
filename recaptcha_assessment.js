@@ -29,7 +29,10 @@ Object.defineProperty(
                 typeof opts.sendContext === u ? true : opts.sendContext,
               callback:
                 typeof opts.callback === "function" ? opts.callback : undefined,
-              params: state.params || {},
+              params: Object.assign(
+                opts.params || {},
+                opts.hCaptcha ? { render: "explicit" } : {}
+              ),
             },
             opts.hCaptcha
               ? {
@@ -83,12 +86,12 @@ Object.defineProperty(
           return {
             activateBrowserPlugin: function (tracker) {
               state.pending++;
+              var gr = window.grecaptcha || window.hcaptcha;
               if (
                 !state.loaded &&
-                (!window.grecaptcha ||
-                  (typeof window.grecaptcha.execute !== f &&
-                    (!window.grecaptcha.enterprise ||
-                      typeof window.grecaptcha.enterprise.execute !== f)))
+                (!gr ||
+                  (typeof gr.execute !== f &&
+                    (!gr.enterprise || typeof gr.enterprise.execute !== f)))
               ) {
                 state.loaded = true;
                 var scripts = d.getElementsByTagName(s);
@@ -113,38 +116,53 @@ Object.defineProperty(
 
                 api.src = src;
                 api.async = 1;
+
                 api.addEventListener(
                   "load",
                   function () {
-                    if (typeof grecaptcha === u) return;
-                    var gr = grecaptcha.enterprise || grecaptcha;
-                    gr.ready(function () {
-                      state.challenge_ts = new Date();
-                      gr.execute(
-                        !state.hCaptcha ? state.siteKey : undefined,
-                        !state.hCaptcha
-                          ? { action: state.action }
-                          : { async: true }
-                      ).then(function (token) {
-                        state.token = token;
+                    var gr = window.hcaptcha || window.grecaptcha;
+                    gr = gr.enterprise || gr;
+                    if (!gr) return;
 
-                        // at this point, tracker doesn't appear to include a trackSelfDescribingEvent method
-                        // so we need to call the tracker globally
+                    var handler = function (token) {
+                      if (!token) return;
+                      state.token = token;
 
-                        // find the tracking function name
-                        var trackerfn = tracker.id.replace(
-                          "_" + tracker.namespace,
-                          ""
-                        );
-                        if (state.sendEvent && typeof window[trackerfn] === f) {
-                          window[trackerfn]("trackSelfDescribingEvent", {
-                            event: payload(),
-                          });
-                        }
+                      // at this point, tracker doesn't appear to include a trackSelfDescribingEvent method
+                      // so we need to call the tracker globally
 
-                        if (state.callback) callback(token);
+                      // find the tracking function name
+                      var trackerfn = tracker.id.replace(
+                        "_" + tracker.namespace,
+                        ""
+                      );
+                      if (state.sendEvent && typeof window[trackerfn] === f) {
+                        window[trackerfn]("trackSelfDescribingEvent", {
+                          event: payload(),
+                        });
+                      }
+
+                      if (state.callback) callback(token);
+                    };
+
+                    if (opts.hCaptcha) {
+                      var div = document.createElement("div");
+                      div.style.display = "none";
+                      document.body.appendChild(div);
+                      var widgetId = gr.render(div, {
+                        sitekey: state.siteKey,
+                        size: "invisible",
+                        callback: handler,
                       });
-                    });
+
+                      state.challenge_ts = new Date();
+                      gr.execute(widgetId, { action: state.action });
+                    } else
+                      gr.ready(function () {
+                        gr.execute(state.siteKey, {
+                          action: state.action,
+                        }).then(handler);
+                      });
                   },
                   false
                 );

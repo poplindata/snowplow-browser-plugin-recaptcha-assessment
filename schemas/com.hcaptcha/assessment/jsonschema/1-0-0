@@ -14,6 +14,18 @@
       "type": "string",
       "description": "The site hostname the token was generated for"
     },
+    "scoped_uid_0": {
+      "type": "string",
+      "description": "encoded clientID",
+    },
+    "scoped_uid_1": {
+      "type": "string",
+      "description": "encoded IP",
+    },
+    "scoped_uid_2": {
+      "type": "string",
+      "description": "encoded IP",
+    },
     "credit": {
       "type": "boolean",
       "description": "Whether this response will be credited"
@@ -21,6 +33,10 @@
     "score": {
       "type": "number",
       "description": "Risk score rating of the user, from 0 (probably human) to 1 (probably bot)"
+    },
+    "sitekey": {
+      "type": "string",
+      "description": ""
     },
     "action": {
       "type": "string",
