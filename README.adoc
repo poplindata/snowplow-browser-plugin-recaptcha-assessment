@@ -18,20 +18,19 @@ As the ReCAPTCHA tokens expire after about 2 minutes, the enrichment will only w
 The plugin requires the Snowplow JavaScript tracker version 3.
 
 == Setup
+=== ReCAPTCHA v3
 . You will need to have a site configured in https://www.google.com/recaptcha/admin[ReCAPTCHA]. The site settings should give you a _Site Key_ and _Secret Key_
 
-. There are two Self Describing JSON defintions you will need to deploy to your pipeline's Iglu Server:
+. There are two Self Describing JSON definitions you will need to deploy to your pipeline's Iglu Server:
 
-  .. one for the event or context generated on the user device (associated with an https://developers.google.com/recaptcha/docs/v3#actions["action"]) and used as input to the API
-  .. a second for the API assessment result, including the score
+  .. one (`com.google.recaptcha/action`) for the event or context generated on the user device (associated with an https://developers.google.com/recaptcha/docs/v3#actions["action"]) and used as input to the API
+  .. a second (`com.google.recaptcha/assessment`) for the API assessment result, including the score
 
 . Edit and install the enrichment configuration:
 
-  .. This will depend on if you're using standard https://developers.google.com/recaptcha/docs/v3[ReCAPTCHA] and https://docs.hcaptcha.com/[hCaptcha], https://cloud.google.com/recaptcha-enterprise[ReCAPTCHA Enterprise]:
-  ... ReCAPTCHA free (`recaptcha_assessment.json`): In the `output` config, replace `{{secretKey}}` with your ReCAPTCHA API _Secret Key_
-  ... ReCAPTCHA Enterprise (`recaptcha_assessment_enterprise.json`): In the `output` config, replace:
-  .... `{{project_number}}` with your Google Cloud Project ID
-  .... `{{api_key}}` with your restricted https://console.cloud.google.com/apis/credentials[Google Cloud API Key]
+  .. This relies on you using standard https://developers.google.com/recaptcha/docs/v3[ReCAPTCHA]:
+  ... `recaptcha_assessment.json`: In the `api` config, replace `{{secretKey}}` with your ReCAPTCHA API _Secret Key_
+
   .. (Optional) In the `inputs` config, for `token`, you can change the source from `contexts` to `unstruct_event`, depending on your tracking implementation (see <<sendContext vs sendEvent>>)
   .. Load the config into your enrichers `enrichments` directory and restart the enricher
 
@@ -48,6 +47,40 @@ snowplow(
 [source,javascript]
 // include recaptcha_assessment.js already
 snowplow( 'addPlugin', recaptcha_assessment, 'default', [{siteKey: '<SITE KEY>'}]);
+
+=== ReCAPTCHA Enterprise Support
+For https://cloud.google.com/recaptcha-enterprise[ReCAPTCHA Enterprise], the process is similar to the above, except you will need to edit slightly different files, and a server-side API is required to adapt the enricher request to that required by the Enterprise API:
+
+. There are two Self Describing JSON definitions you will need to deploy to your pipeline's Iglu Server:
+
+  .. one (`com.google.recaptcha/action`) for the event or context generated on the user device (associated with an https://developers.google.com/recaptcha/docs/v3#actions["action"]) and used as input to the API
+  .. a second (`com.google.recaptcha/enterprise_assessment`) for the API assessment result, including the score
+
+. Create an adapter API.
+  This is a good candidate for a Cloud Function or Lambda Function.
+  The API needs to just take a JSON payload, then wrap that payload in an object with an `"event"` property. Then it should call the ReCAPTCHA Enterprise API with the wrapped payload, and return the result back to the Snowplow Enricher.
+  You can call the API via the URL already in `recaptcha_assessment_enterprise.json`, replacing `{{project_number}}` with your Google Cloud Project Number, and `{{api_key}}` with your https://console.cloud.google.com/apis/credentials[Google Cloud API Key]
+
+. Edit and install the enrichment configuration:
+
+  .. `recaptcha_assessment_enterprise.json`: In the `api` config, replace the URL with the URL for your adapter API
+  .. (Optional) In the `inputs` config, for `token`, you can change the source from `contexts` to `unstruct_event`, depending on your tracking implementation (see <<sendContext vs sendEvent>>)
+  .. Load the config into your enrichers `enrichments` directory and restart the enricher
+
+. Upload the plugin, and install it into your tracking code:
+  - As an external plugin:
+[source,javascript]
+snowplow(
+	'addPlugin',
+	'https://cdn.example.com/recaptcha_assessment.js',
+	['recaptcha_assessment', 'default'],
+	[{siteKey: '<SITE KEY>', enterprise: true}]
+);
+  - Inline:
+[source,javascript]
+// include recaptcha_assessment.js already
+snowplow( 'addPlugin', recaptcha_assessment, 'default', [{siteKey: '<SITE KEY>', enterprise: true}]);
+
 
 === hCaptcha Enterprise Support
 As the API for https://www.hcaptcha.com/[hCaptcha] is very similar, it is also supported with the following configuration changes:
