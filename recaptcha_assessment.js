@@ -159,6 +159,7 @@ Object.defineProperty(
                       gr.execute(widgetId, { action: state.action });
                     } else
                       gr.ready(function () {
+                        state.challenge_ts = new Date();
                         gr.execute(state.siteKey, {
                           action: state.action,
                         }).then(handler);
