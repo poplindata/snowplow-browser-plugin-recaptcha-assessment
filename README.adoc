@@ -10,88 +10,72 @@ https://developers.google.com/recaptcha/docs/v3#interpreting_the_score[user scor
 for site traffic.
 
 The approach is similar to https://www.simoahava.com/analytics/improve-google-analytics-bot-detection-with-recaptcha/[this article],
-but without the need for a PHP service to verify the token. This role is performed by the Snowplow Enricher instead, via a https://docs.snowplowanalytics.com/docs/enriching-your-data/available-enrichments/custom-api-request-enrichment/[Custom API enrichment].
+but without the need for a PHP service to verify the token.
+This role is performed by the Snowplow Enricher instead, via a https://docs.snowplowanalytics.com/docs/enriching-your-data/available-enrichments/custom-javascript-enrichment/[Custom JavaScript enrichment].
 
 == Requirements
-As the ReCAPTCHA tokens expire after about 2 minutes, the enrichment will only work on a real time, streaming pipeline. Processing historical events won't successfully enrich the data.
+As the ReCAPTCHA tokens expire after about 2 minutes, the enrichment will only work on a real time, streaming pipeline.
+Processing historical events won't successfully enrich the data.
 
 The plugin requires the Snowplow JavaScript tracker version 3.
 
 == Setup
+=== Schemas
+There are three Self Describing JSON definitions you will need to deploy to your pipeline's Iglu Server from the `schemas` directory:
+
+  . `com.google.recaptcha/action` for the event or context generated on the user device (associated with an https://developers.google.com/recaptcha/docs/v3#actions["action"]) and used as input to the API
+  . `com.google.recaptcha/assessment` for the API assessment result, including the score (not required if only using ReCAPTCHA Enterprise)
+  . `com.google.recaptcha/enterprise_assessment` for the API assessment result, including the score (only required if using ReCAPTCHA Enterprise)
+
 === ReCAPTCHA v3
 . You will need to have a site configured in https://www.google.com/recaptcha/admin[ReCAPTCHA]. The site settings should give you a _Site Key_ and _Secret Key_
 
-. There are two Self Describing JSON definitions you will need to deploy to your pipeline's Iglu Server:
+. Edit the enrichment configuration (`recaptcha_enrich.js`):
 
-  .. one (`com.google.recaptcha/action`) for the event or context generated on the user device (associated with an https://developers.google.com/recaptcha/docs/v3#actions["action"]) and used as input to the API
-  .. a second (`com.google.recaptcha/assessment`) for the API assessment result, including the score
+  - For standard ReCAPTCHA v3:
+    .. In the top config block, replace `CHANGEME` in the `secretKey` config with your ReCAPTCHA API _Secret Key_
+    .. Make sure `enterprise` is set to `false`
 
-. Edit and install the enrichment configuration:
+  - For ReCAPTCHA Enterprise:
+    .. In the top config block, set `enterprise` to `true`
+    .. Set `gcpProject` to the Project ID your ReCAPTCHA Enterprise API belongs to. If it is the same as your enrichment pipeline, you can leave it as `null` to be detected automatically. This must be the numeric project ID, not the text project name.
+    .. For `secretKey`, set the value to either:
+      * a https://console.cloud.google.com/apis/credentials[Google Cloud API Key]
+      * Empty string (`""`), `CHANGEME`, or `null` to use the Enricher instance's Service Account to request an Access Token (GCP only, see below)
 
-  .. This relies on you using standard https://developers.google.com/recaptcha/docs/v3[ReCAPTCHA]:
-  ... `recaptcha_assessment.json`: In the `api` config, replace `{{secretKey}}` with your ReCAPTCHA API _Secret Key_
+    .. Change `gcpServiceAccount` to the Service Account available on your enricher instance to request an access token for. The default is to use the default instance Service Account.
+    .. You must specify either an API Key in `secretKey` or use a `gcpServiceAccount` (`default` or otherwise) to use ReCAPTCHA Enterprise.
 
-  .. (Optional) In the `inputs` config, for `token`, you can change the source from `contexts` to `unstruct_event`, depending on your tracking implementation (see <<sendContext vs sendEvent>>)
-  .. Load the config into your enrichers `enrichments` directory and restart the enricher
+. Generate and install the enrichment:
+    .. Run `npm install`. This will generate an enrichment configuration in `dist/recaptcha_enrich.json` with your authentication included.
+    .. Load the generated configuration into your enrichers `enrichments` directory and restart the enricher
 
-. Upload the plugin, and install it into your tracking code:
+. The `npm install` command will also minify the plugin code for you, into `dist/recaptcha_assessment.js`.
+  Upload the plugin, and install it into your tracking code:
   - As an external plugin:
 [source,javascript]
 snowplow(
 	'addPlugin',
 	'https://cdn.example.com/recaptcha_assessment.js',
 	['recaptcha_assessment', 'default'],
-	[{siteKey: '<SITE KEY>'}]
+	[{siteKey: '<SITE KEY>', enterprise: false}]
 );
   - Inline:
 [source,javascript]
 // include recaptcha_assessment.js already
-snowplow( 'addPlugin', recaptcha_assessment, 'default', [{siteKey: '<SITE KEY>'}]);
-
-=== ReCAPTCHA Enterprise Support
-For https://cloud.google.com/recaptcha-enterprise[ReCAPTCHA Enterprise], the process is similar to the above, except you will need to edit slightly different files, and a server-side API is required to adapt the enricher request to that required by the Enterprise API:
-
-. There are two Self Describing JSON definitions you will need to deploy to your pipeline's Iglu Server:
-
-  .. one (`com.google.recaptcha/action`) for the event or context generated on the user device (associated with an https://developers.google.com/recaptcha/docs/v3#actions["action"]) and used as input to the API
-  .. a second (`com.google.recaptcha/enterprise_assessment`) for the API assessment result, including the score
-
-. Create an adapter API.
-  This is a good candidate for a Cloud Function or Lambda Function.
-  The API needs to just take a JSON payload, then wrap that payload in an object with an `"event"` property. Then it should call the ReCAPTCHA Enterprise API with the wrapped payload, and return the result back to the Snowplow Enricher.
-  You can call the API via the URL already in `recaptcha_assessment_enterprise.json`, replacing `{{project_number}}` with your Google Cloud Project Number, and `{{api_key}}` with your https://console.cloud.google.com/apis/credentials[Google Cloud API Key]
-
-. Edit and install the enrichment configuration:
-
-  .. `recaptcha_assessment_enterprise.json`: In the `api` config, replace the URL with the URL for your adapter API
-  .. (Optional) In the `inputs` config, for `token`, you can change the source from `contexts` to `unstruct_event`, depending on your tracking implementation (see <<sendContext vs sendEvent>>)
-  .. Load the config into your enrichers `enrichments` directory and restart the enricher
-
-. Upload the plugin, and install it into your tracking code:
-  - As an external plugin:
-[source,javascript]
-snowplow(
-	'addPlugin',
-	'https://cdn.example.com/recaptcha_assessment.js',
-	['recaptcha_assessment', 'default'],
-	[{siteKey: '<SITE KEY>', enterprise: true}]
-);
-  - Inline:
-[source,javascript]
-// include recaptcha_assessment.js already
-snowplow( 'addPlugin', recaptcha_assessment, 'default', [{siteKey: '<SITE KEY>', enterprise: true}]);
-
+snowplow( 'addPlugin', recaptcha_assessment, 'default', [{siteKey: '<SITE KEY>', enterprise: false}]);
 
 === hCaptcha Enterprise Support
 As the API for https://www.hcaptcha.com/[hCaptcha] is very similar, it is also supported with the following configuration changes:
 
 . Use the `com.hcaptcha` schema variants instead of `com.google.recaptcha`
-. Use the `hcaptcha_assessment.json` enrichment
-. Specify the `hCaptcha: true` setting when loading the plugin, and a hCaptcha `siteKey`
+. Specify the `hCaptcha: true` setting when loading the plugin and configuring the enricher, and a hCaptcha `siteKey`
 
 For hCaptcha, only https://docs.hcaptcha.com/faq/#what-are-the-difficulty-levels-for-the-challenges-and-how-are-they-selected["Passive"] captchas are supported. This requires https://www.hcaptcha.com/enterprise[hCaptcha Enterprise].
 You can enable Passive Mode in the Site Settings within hCaptcha, by changing the "Captcha difficulty" slider to "Passive".
-Note if you change a site key configuration from a different mode to Passive, it may still issue challenges to users.
+Even though this is an Enterprise API, the `enterprise` and `hCaptcha` settings are mutually exclusive.
+
+Note if you change an existing site key configuration from a different mode to Passive, it may still issue challenges to users.
 Archiving and Unarchiving the Site configuration seems to fix this.
 
 == Plugin Parameters

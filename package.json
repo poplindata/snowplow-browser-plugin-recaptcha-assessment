@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/poplindata/snowplow-browser-plugin-recaptcha-assessment/issues"
   },
-  "homepage": "https://github.com/poplindata/snowplow-browser-plugin-recaptcha-assessment#readme"
+  "homepage": "https://github.com/poplindata/snowplow-browser-plugin-recaptcha-assessment#readme",
+  "scripts": {
+    "prepare": "./build.sh"
+  }
 }
