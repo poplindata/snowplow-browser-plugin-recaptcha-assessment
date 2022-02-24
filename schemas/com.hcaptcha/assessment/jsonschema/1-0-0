@@ -3,7 +3,7 @@
   "properties": {
     "success": {
       "type": "boolean",
-      "description": "Whether the assement of this token was successful or not"
+      "description": "Whether the assessment of this token was successful or not"
     },
     "challenge_ts": {
       "type": "string",
@@ -16,15 +16,15 @@
     },
     "scoped_uid_0": {
       "type": "string",
-      "description": "encoded clientID",
+      "description": "encoded clientID"
     },
     "scoped_uid_1": {
       "type": "string",
-      "description": "encoded IP",
+      "description": "encoded IP"
     },
     "scoped_uid_2": {
       "type": "string",
-      "description": "encoded IP",
+      "description": "encoded IP"
     },
     "credit": {
       "type": "boolean",
