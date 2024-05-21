@@ -3,7 +3,7 @@
 A
 https://snowplowanalytics.com/[Snowplow]
 https://docs.snowplowanalytics.com/docs/collecting-data/collecting-from-own-applications/javascript-trackers/javascript-tracker/[JavaScript Tracker]
-https://docs.snowplowanalytics.com/docs/collecting-data/collecting-from-own-applications/javascript-trackers/javascript-tracker/javascript-tracker-v3/plugins/[plugin]
+https://docs.snowplowanalytics.com/docs/collecting-data/collecting-from-own-applications/javascript-trackers/javascript-tracker/javascript-tracker-v3/plugins/[plugin] (see [`recaptcha_assessment.js`](recaptcha_assessment.js))
 to enable catching
 https://www.google.com/recaptcha/about/[ReCAPTCHA]
 https://developers.google.com/recaptcha/docs/v3#interpreting_the_score[user scores]
@@ -11,7 +11,7 @@ for site traffic.
 
 The approach is similar to https://www.simoahava.com/analytics/improve-google-analytics-bot-detection-with-recaptcha/[this article],
 but without the need for a PHP service to verify the token.
-This role is performed by the Snowplow Enricher instead, via a https://docs.snowplowanalytics.com/docs/enriching-your-data/available-enrichments/custom-javascript-enrichment/[Custom JavaScript enrichment].
+This role is performed by the Snowplow Enricher instead, via a https://docs.snowplowanalytics.com/docs/enriching-your-data/available-enrichments/custom-javascript-enrichment/[Custom JavaScript enrichment] (built from [`recaptcha_enrich.js`](recaptcha_enrich.js)).
 
 == Requirements
 As the ReCAPTCHA tokens expire after about 2 minutes, the enrichment will only work on a real time, streaming pipeline.
@@ -27,10 +27,12 @@ There are three Self Describing JSON definitions you will need to deploy to your
   . `com.google.recaptcha/assessment` for the API assessment result, including the score (not required if only using ReCAPTCHA Enterprise)
   . `com.google.recaptcha/enterprise_assessment` for the API assessment result, including the score (only required if using ReCAPTCHA Enterprise)
 
+hCaptcha equivalent schemas are also provided.
+
 === ReCAPTCHA v3
 . You will need to have a site configured in https://www.google.com/recaptcha/admin[ReCAPTCHA]. The site settings should give you a _Site Key_ and _Secret Key_
 
-. Edit the enrichment configuration (`recaptcha_enrich.js`):
+. This enrichment predates JavaScript enrichment [parameters support](https://docs.snowplow.io/docs/enriching-your-data/available-enrichments/custom-javascript-enrichment/writing/#passing-an-object-of-parameters). The configuration is built into the script definition itself. Since the enrichment configuration requires the script to be base64 encoded within the JSON, we first need to adjust that code and then generate the enrichment configuration. Edit the enrichment script (`recaptcha_enrich.js`):
 
   - For standard ReCAPTCHA v3:
     .. In the top config block, replace `CHANGEME` in the `secretKey` config with your ReCAPTCHA API _Secret Key_
@@ -46,8 +48,8 @@ There are three Self Describing JSON definitions you will need to deploy to your
     .. Change `gcpServiceAccount` to the Service Account available on your enricher instance to request an access token for. The default is to use the default instance Service Account.
     .. You must specify either an API Key in `secretKey` or use a `gcpServiceAccount` (`default` or otherwise) to use ReCAPTCHA Enterprise.
 
-. Generate and install the enrichment:
-    .. Run `npm install`. This will generate an enrichment configuration in `dist/recaptcha_enrich.json` with your authentication included.
+. Generate and install the enrichment configuration:
+    .. Run `npm install`. This will run `build.sh` to generate an enrichment configuration in `dist/recaptcha_enrich.json` with your authentication included. `build.sh` requires NodeJS, Python, and jq to be installed to work properly. You can also just manually prepare the enrichment.
     .. Load the generated configuration into your enrichers `enrichments` directory and restart the enricher
 
 . The `npm install` command will also minify the plugin code for you, into `dist/recaptcha_assessment.js`.
