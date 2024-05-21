@@ -3,7 +3,7 @@
 A
 https://snowplowanalytics.com/[Snowplow]
 https://docs.snowplowanalytics.com/docs/collecting-data/collecting-from-own-applications/javascript-trackers/javascript-tracker/[JavaScript Tracker]
-https://docs.snowplowanalytics.com/docs/collecting-data/collecting-from-own-applications/javascript-trackers/javascript-tracker/javascript-tracker-v3/plugins/[plugin] (see [`recaptcha_assessment.js`](recaptcha_assessment.js))
+https://docs.snowplowanalytics.com/docs/collecting-data/collecting-from-own-applications/javascript-trackers/javascript-tracker/javascript-tracker-v3/plugins/[plugin] (see `recaptcha_assessment.js`)
 to enable catching
 https://www.google.com/recaptcha/about/[ReCAPTCHA]
 https://developers.google.com/recaptcha/docs/v3#interpreting_the_score[user scores]
@@ -11,7 +11,7 @@ for site traffic.
 
 The approach is similar to https://www.simoahava.com/analytics/improve-google-analytics-bot-detection-with-recaptcha/[this article],
 but without the need for a PHP service to verify the token.
-This role is performed by the Snowplow Enricher instead, via a https://docs.snowplowanalytics.com/docs/enriching-your-data/available-enrichments/custom-javascript-enrichment/[Custom JavaScript enrichment] (built from [`recaptcha_enrich.js`](recaptcha_enrich.js)).
+This role is performed by the Snowplow Enricher instead, via a https://docs.snowplowanalytics.com/docs/enriching-your-data/available-enrichments/custom-javascript-enrichment/[Custom JavaScript enrichment] (built from `recaptcha_enrich.js`).
 
 == Requirements
 As the ReCAPTCHA tokens expire after about 2 minutes, the enrichment will only work on a real time, streaming pipeline.
@@ -32,7 +32,7 @@ hCaptcha equivalent schemas are also provided.
 === ReCAPTCHA v3
 . You will need to have a site configured in https://www.google.com/recaptcha/admin[ReCAPTCHA]. The site settings should give you a _Site Key_ and _Secret Key_
 
-. This enrichment predates JavaScript enrichment [parameters support](https://docs.snowplow.io/docs/enriching-your-data/available-enrichments/custom-javascript-enrichment/writing/#passing-an-object-of-parameters). The configuration is built into the script definition itself. Since the enrichment configuration requires the script to be base64 encoded within the JSON, we first need to adjust that code and then generate the enrichment configuration. Edit the enrichment script (`recaptcha_enrich.js`):
+. This enrichment predates JavaScript enrichment https://docs.snowplow.io/docs/enriching-your-data/available-enrichments/custom-javascript-enrichment/writing/#passing-an-object-of-parameters[parameters support]. The configuration is built into the script definition itself. Since the enrichment configuration requires the script to be base64 encoded within the JSON, we first need to adjust that code and then generate the enrichment configuration. Edit the enrichment script (`recaptcha_enrich.js`):
 
   - For standard ReCAPTCHA v3:
     .. In the top config block, replace `CHANGEME` in the `secretKey` config with your ReCAPTCHA API _Secret Key_
